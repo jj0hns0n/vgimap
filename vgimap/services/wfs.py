@@ -1,13 +1,24 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.gis.geos import Point
-from ga_ows.views.wfs import WFSAdapter, FeatureDescription
-from vgimap.services.models import TwitterTweet,UshahidiReport,Service,UshahidiCategory
-import twitter
-import json
-from urlparse import urljoin
-import requests
-import datetime
 
+from ga_ows.views.wfs import WFSAdapter, FeatureDescription
+
+from vgimap.services.models import Service
+from vgimap.services.models import TwitterTweet, TwitterPlace
+from vgimap.services.models import UshahidiReport, UshahidiCategory
+from vgimap.services.models import OsmNode, OsmWay, OsmNodeTag
+
+import os
+import json
+import datetime
+import requests
+import twitter
+import OsmApi
+import ogr
+
+from uuid import uuid4
+from urlparse import urljoin
+from tempfile import gettempdir
 
 def get_response(url):
     "This hits the api identified by the service and returns the response"
@@ -21,7 +32,8 @@ def get_response(url):
 class OSMWFSAdapter(WFSAdapter):
 
     def __init__(self):
-        pass
+        self.osm_api = OsmApi.OsmApi(api = "www.overpass-api.de")
+        self.service = Service.objects.filter(type='OSM')[0]
 
     def get_feature_descriptions(self, request, **params):
         namespace = request.build_absolute_uri().split('?')[0] + "/schema"
@@ -59,7 +71,15 @@ class OSMWFSAdapter(WFSAdapter):
         srs_format = params.cleaned_data['srs_format'] # this can be proj, None (srid), srid, or wkt.
         
         if flt:
-            pass
+            data  = self.osm_api._get("/api/interpreter?data=node%5B%22highway%22%3D%22bus%5Fstop%22%5D%5B%22shelter%22%5D%5B%22shelter%22%21%7E%22no%22%5D%2850%2E7%2C7%2E1%2C50%2E8%2C7%2E25%29%3Bout%20meta%3B")
+            #data = api.ParseOsm(data)
+            tmpname = "{tmpdir}{sep}{uuid}.{output_format}".format(tmpdir=gettempdir(), uuid=uuid4(), output_format='osm', sep=os.path.sep)
+            f = open(tmpname, 'w')
+            f.write(data)
+            f.close()
+            ds = ogr.Open(tmpname)
+            print ds
+            return ds
         else:
             pass
 
