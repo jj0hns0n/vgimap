@@ -8,7 +8,6 @@ from urlparse import urljoin
 import requests
 import datetime
 
-right_now = datetime.datetime.utcnow()
 
 def get_response(url):
     "This hits the api identified by the service and returns the response"
@@ -17,6 +16,7 @@ def get_response(url):
         return req
     except requests.exceptions.ConnectionError, e:
         return e
+
 
 class TwitterWFSAdapter(WFSAdapter):
     def __init__(self):
@@ -79,7 +79,10 @@ class TwitterWFSAdapter(WFSAdapter):
             return TwitterTweet.objects.filter(identifier__in=status_ids) # TODO Slice for paging
         else:
             return TwitterTweet.objects.all() # TODO slice for paginl
+
+
 class UshahidiWFSAdapter(WFSAdapter):
+
     def __init__(self):
         pass
 
@@ -105,6 +108,7 @@ class UshahidiWFSAdapter(WFSAdapter):
     def get_features(self, request, params):
         # Can eventually support stored queries here
         return self.AdHocQuery(request, params)
+
     def update_categories(self,categories,service):
         created_categories = []
         for category in categories:
@@ -143,6 +147,7 @@ class UshahidiWFSAdapter(WFSAdapter):
                 try:
                     report = UshahidiReport.objects.get(identifier=incident['incident']['incidentid'])
                 except ObjectDoesNotExist:
+                    right_now = datetime.datetime.utcnow()
                     report = UshahidiReport(service=service,identifier=incident['incident']['incidentid'],incident_mode = incident['incident']['incidentmode']
                              ,created = right_now,incident_active = incident['incident']['incidentactive']
                              ,incident_verified = incident['incident']['incidentverified'],location_id = incident['incident']['locationid']
@@ -161,4 +166,3 @@ class UshahidiWFSAdapter(WFSAdapter):
             return UshahidiReport.objects.filter(identifier__in=reports_ids) # TODO Slice for paging
         else:
             return UshahidiReport.objects.all() # TODO slice for paging
-
