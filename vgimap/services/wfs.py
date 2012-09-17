@@ -71,15 +71,22 @@ class OSMWFSAdapter(WFSAdapter):
         srs_format = params.cleaned_data['srs_format'] # this can be proj, None (srid), srid, or wkt.
         
         if flt:
-            data  = self.osm_api._get("/api/interpreter?data=node%5B%22highway%22%3D%22bus%5Fstop%22%5D%5B%22shelter%22%5D%5B%22shelter%22%21%7E%22no%22%5D%2850%2E7%2C7%2E1%2C50%2E8%2C7%2E25%29%3Bout%20meta%3B")
-            #data = api.ParseOsm(data)
+            # Parse the query
+            # Convert to Overpass API Params
+            # Execute the query against the Overpass API
+            data  = self.osm_api._get("/api/interpreter?data=(node(50.746%2C7.154%2C50.748%2C7.157)%3B%3C%3B%3E%3B)%3Bout%20meta%3B")
+            # Write the results out to a temp file
             tmpname = "{tmpdir}{sep}{uuid}.{output_format}".format(tmpdir=gettempdir(), uuid=uuid4(), output_format='osm', sep=os.path.sep)
             f = open(tmpname, 'w')
             f.write(data)
             f.close()
+            # Open the temp file as an OGR dataset
             ds = ogr.Open(tmpname)
-            print ds
-            return ds
+            if ds:
+                # Return the OGR Dataset
+                return ds
+            else:
+                return None
         else:
             pass
 
