@@ -14,11 +14,12 @@ import datetime
 import requests
 import twitter
 import OsmApi
-import ogr
+from osgeo import ogr
 
 from uuid import uuid4
 from urlparse import urljoin
 from tempfile import gettempdir
+import urllib
 
 def get_response(url):
     "This hits the api identified by the service and returns the response"
@@ -69,26 +70,26 @@ class OSMWFSAdapter(WFSAdapter):
         start_index = params.cleaned_data['start_index']
         srs_name = params.cleaned_data['srs_name'] # assume bbox is in this
         srs_format = params.cleaned_data['srs_format'] # this can be proj, None (srid), srid, or wkt.
-        
+       
+        if bbox:
+            query = str("(node(%f,%f,%f,%f);<;>;);out meta;" % (bbox[0], bbox[1], bbox[2], bbox[3]))
         if flt:
             # Parse the query
             # Convert to Overpass API Params
             # Execute the query against the Overpass API
-            data  = self.osm_api._get("/api/interpreter?data=(node(50.746%2C7.154%2C50.748%2C7.157)%3B%3C%3B%3E%3B)%3Bout%20meta%3B")
-            # Write the results out to a temp file
-            tmpname = "{tmpdir}{sep}{uuid}.{output_format}".format(tmpdir=gettempdir(), uuid=uuid4(), output_format='osm', sep=os.path.sep)
-            f = open(tmpname, 'w')
-            f.write(data)
-            f.close()
-            # Open the temp file as an OGR dataset
-            ds = ogr.Open(tmpname)
-            if ds:
-                # Return the OGR Dataset
-                return ds
-            else:
-                return None
-        else:
             pass
+
+        url = str("/api/interpreter?data=" + urllib.quote_plus(query))
+        
+        data = self.osm_api._get(url)
+
+        # Write the results out to a temp file
+        tmpname = "{tmpdir}{sep}{uuid}.{output_format}".format(tmpdir=gettempdir(), uuid=uuid4(), output_format='osm', sep=os.path.sep)
+        f = open(tmpname, 'w')
+        f.write(data)
+        f.close()
+        return (tmpname, str(type_names[0]))
+            
 
 class TwitterWFSAdapter(WFSAdapter):
 
