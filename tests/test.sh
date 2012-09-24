@@ -15,7 +15,7 @@ curl "http://vgi.dev.opengeo.org/osm_wfs/?service=wfs&request=GetFeature&version
 
 curl "http://vgi.dev.opengeo.org/osm_wfs/?service=wfs&request=GetFeature&version=2.0.0&typename=lines&bbox=10.903130,-74.835899,11.019240,-74.741623" 
 
-# All Multilinestrings in Körmed, Hungar
+# All Multilinestrings in Körmed, Hungay
 
 curl "http://vgi.dev.opengeo.org/osm_wfs/?service=wfs&request=GetFeature&version=2.0.0&typename=multilinestrings&bbox=46.977859,16.572309,47.043941,16.638390" 
 
@@ -23,7 +23,8 @@ curl "http://vgi.dev.opengeo.org/osm_wfs/?service=wfs&request=GetFeature&version
 
 curl "http://vgi.dev.opengeo.org/osm_wfs/?service=wfs&request=GetFeature&version=2.0.0&typename=multipolygons&bbox=-7.8360,110.3883,-7.7649,110.3395"
 
-# All "other_relations" around Shinjuku, Tokyo, Japan (Will almost certainly time out)
+# All "other_relations" around Shinjuku, Tokyo, Japan
+# (Will almost certainly time out)
 
 curl "http://vgi.dev.opengeo.org/osm_wfs/?service=wfs&request=GetFeature&version=2.0.0&typename=other_relations&bbox=35.6731,139.7453,139.6733,35.7299"
 
