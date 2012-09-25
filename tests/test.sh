@@ -15,7 +15,7 @@ curl "http://vgi.dev.opengeo.org/osm_wfs/?service=wfs&request=GetFeature&version
 
 curl "http://vgi.dev.opengeo.org/osm_wfs/?service=wfs&request=GetFeature&version=2.0.0&typename=lines&bbox=10.903130,-74.835899,11.019240,-74.741623" 
 
-# All Multilinestrings in Körmed, Hungay
+# All Multilinestrings in Körmend, Hungary
 
 curl "http://vgi.dev.opengeo.org/osm_wfs/?service=wfs&request=GetFeature&version=2.0.0&typename=multilinestrings&bbox=46.977859,16.572309,47.043941,16.638390" 
 
