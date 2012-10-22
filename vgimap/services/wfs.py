@@ -40,17 +40,58 @@ class OSMWFSAdapter(WFSAdapter):
         namespace = request.build_absolute_uri().split('?')[0] + "/schema"
         extent = (-180,-90,180,90)
 
-        return [FeatureDescription(
-                ns=namespace,
-                ns_name="osm",
-                name="OpenStreetMap",
-                abstract="OpenStreetMap Data",
-                title="OpenStreetMap Data",
-                keywords=['openstreetmap', 'osm', 'vgi'],
-                srs="EPSG:4326",
-                bbox=[-180,-90,180,90],
-                schema=namespace
-            )]
+        return [
+                FeatureDescription(
+                    ns=namespace,
+                    ns_name="osm",
+                    name="points",
+                    abstract="OpenStreetMap Point Data",
+                    title="OpenStreetMap Point Data",
+                    keywords=['openstreetmap', 'osm', 'vgi'],
+                    srs="EPSG:4326",
+                    bbox=[-180,-90,180,90],
+                    schema=namespace),
+                FeatureDescription(
+                    ns=namespace,
+                    ns_name="osm",
+                    name="lines",
+                    abstract="OpenStreetMap Line Data",
+                    title="OpenStreetMap Line Data",
+                    keywords=['openstreetmap', 'osm', 'vgi'],
+                    srs="EPSG:4326",
+                    bbox=[-180,-90,180,90],
+                    schema=namespace),
+                FeatureDescription(
+                    ns=namespace,
+                    ns_name="osm",
+                    name="multipolygons",
+                    abstract="OpenStreetMap MultiPolygon Data",
+                    title="OpenStreetMap MultiPolygon Data",
+                    keywords=['openstreetmap', 'osm', 'vgi'],
+                    srs="EPSG:4326",
+                    bbox=[-180,-90,180,90],
+                    schema=namespace),
+                FeatureDescription(
+                    ns=namespace,
+                    ns_name="osm",
+                    name="multilinestrings",
+                    abstract="OpenStreetMap Multilinestring Data",
+                    title="OpenStreetMap Line Data",
+                    keywords=['openstreetmap', 'osm', 'vgi'],
+                    srs="EPSG:4326",
+                    bbox=[-180,-90,180,90],
+                    schema=namespace),
+                FeatureDescription(
+                    ns=namespace,
+                    ns_name="osm",
+                    name="other_relations",
+                    abstract="OpenStreetMap Other Relations Data",
+                    title="OpenStreetMap Line Data",
+                    keywords=['openstreetmap', 'osm', 'vgi'],
+                    srs="EPSG:4326",
+                    bbox=[-180,-90,180,90],
+                    schema=namespace),
+            ]
 
     def list_stored_queries(self, request):
         pass
@@ -62,11 +103,14 @@ class OSMWFSAdapter(WFSAdapter):
     def AdHocQuery(self, request, params):
         type_names = params.cleaned_data['type_names'] # only support one type-name at a time (model) for now
         flt = params.cleaned_data['filter'] # filter should be in JSON 
-        bbox = params.cleaned_data['bbox'] 
+        bbox = params.cleaned_data['bbox']
+        print bbox
+        if bbox == (-180,-90,180,90): 
+            bbox = [-0.1,-0.1,0.1,0.1]
         sort_by = params.cleaned_data['sort_by']
         count = params.cleaned_data['count']
         if not count:
-            count = params.cleand_data['max_features'] 
+            count = params.cleaned_data['max_features'] 
         start_index = params.cleaned_data['start_index']
         srs_name = params.cleaned_data['srs_name'] # assume bbox is in this
         srs_format = params.cleaned_data['srs_format'] # this can be proj, None (srid), srid, or wkt.
@@ -80,7 +124,7 @@ class OSMWFSAdapter(WFSAdapter):
             pass
 
         url = str("/api/interpreter?data=" + urllib.quote_plus(query))
-        
+        print url 
         data = self.osm_api._get(url)
 
         # Write the results out to a temp file
@@ -88,7 +132,7 @@ class OSMWFSAdapter(WFSAdapter):
         f = open(tmpname, 'w')
         f.write(data)
         f.close()
-        return (tmpname, str(type_names[0]))
+        return (tmpname, str(type_names[0].split(':')[1]))
             
 
 class TwitterWFSAdapter(WFSAdapter):
