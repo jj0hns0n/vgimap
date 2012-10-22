@@ -266,7 +266,7 @@
             <wfs:DefaultCRS>{{ feature_type.srs }}</wfs:DefaultCRS>
             <ows:WGS84BoundingBox>
                 <ows:LowerCorner>{{ feature_type.bbox.0 }} {{ feature_type.bbox.1 }}</ows:LowerCorner>
-                <ows:UpperCorner>{{ feature_type.bbox.2 }} {{ feature_type.bbox.2 }}</ows:UpperCorner>
+                <ows:UpperCorner>{{ feature_type.bbox.2 }} {{ feature_type.bbox.3 }}</ows:UpperCorner>
             </ows:WGS84BoundingBox>
         </wfs:FeatureType>
         {% endfor %}
