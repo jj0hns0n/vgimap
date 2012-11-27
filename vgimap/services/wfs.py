@@ -9,6 +9,7 @@ from vgimap.services.models import UshahidiReport, UshahidiCategory
 from vgimap.services.models import OsmNode, OsmWay, OsmNodeTag
 
 import os
+import sys
 import json
 import datetime
 import requests
@@ -16,6 +17,7 @@ import twitter
 import OsmApi
 from osgeo import ogr
 
+from lxml import etree
 from uuid import uuid4
 from urlparse import urljoin
 from tempfile import gettempdir
@@ -104,7 +106,6 @@ class OSMWFSAdapter(WFSAdapter):
         type_names = params.cleaned_data['type_names'] # only support one type-name at a time (model) for now
         flt = params.cleaned_data['filter'] # filter should be in JSON 
         bbox = params.cleaned_data['bbox']
-        print bbox
         if bbox == (-180,-90,180,90): 
             bbox = [-0.1,-0.1,0.1,0.1]
         sort_by = params.cleaned_data['sort_by']
@@ -124,7 +125,6 @@ class OSMWFSAdapter(WFSAdapter):
             pass
 
         url = str("/api/interpreter?data=" + urllib.quote_plus(query))
-        print url 
         data = self.osm_api._get(url)
 
         # Write the results out to a temp file
@@ -165,7 +165,7 @@ class TwitterWFSAdapter(WFSAdapter):
 
     def AdHocQuery(self, request, params):
         type_names = params.cleaned_data['type_names'] # only support one type-name at a time (model) for now
-        flt = params.cleaned_data['filter'] # filter should be in JSON 
+        flt = params.cleaned_data['filter']
         bbox = params.cleaned_data['bbox'] 
         sort_by = params.cleaned_data['sort_by']
         count = params.cleaned_data['count']
@@ -174,29 +174,38 @@ class TwitterWFSAdapter(WFSAdapter):
         start_index = params.cleaned_data['start_index']
         srs_name = params.cleaned_data['srs_name'] # assume bbox is in this
         srs_format = params.cleaned_data['srs_format'] # this can be proj, None (srid), srid, or wkt.
-        
+       
+        flt_dict = {}
+        search_terms = []
         if flt:
-            flt_dict = json.loads(flt)
-        
-            api = twitter.Api()
-            if 'user' in flt_dict:
-                statuses = api.GetUserTimeline(flt_dict['user'])
-            else:
-                statuses = api.GetPublicTimeline() 
-            status_ids = []
-            # Cache to the Database
-            for s in statuses:
-                try:
-                    tweet = TwitterTweet.objects.get(identifier=s.id)
-                except ObjectDoesNotExist:
-                    tweet = TwitterTweet()
-                    tweet.save_tweet(s)
-                status_ids.append(tweet.identifier)
-
-            # Look back up in the DB and return the results
-            return TwitterTweet.objects.filter(identifier__in=status_ids) # TODO Slice for paging
+            try:
+                flt = flt.replace('ogc:', '').replace('gml:', '')
+                flt_tree = etree.fromstring(flt)
+                # Parse out search terms
+                for prop in flt_tree.findall('.//PropertyIsLike'):
+                    search_terms.append(prop.find('.//Literal').text)
+                # Parse out bbox
+            except:
+                print "Unexpected error:", sys.exc_info()[0] 
         else:
-            return TwitterTweet.objects.all() # TODO slice for paginl
+            pass
+
+        api = twitter.Api()
+        if len(search_terms) > 0:
+            statuses = api.GetSearch(term=(' '.join(search_terms)))
+        elif 'user' in flt_dict:
+            statuses = api.GetUserTimeline(flt_dict['user'])
+        else:
+            statuses = api.GetSearch(term="sandy", geocode=(34.0522, -118.2436, '10km'))
+        status_ids = []
+        # Cache to the Database
+        for s in statuses:
+            tweet = TwitterTweet()
+            tweet.save_tweet(s)
+            status_ids.append(tweet.identifier)
+
+        # Look back up in the DB and return the results
+        return TwitterTweet.objects.filter(identifier__in=status_ids) # TODO Slice for paging
 
 
 class UshahidiWFSAdapter(WFSAdapter):

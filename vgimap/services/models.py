@@ -163,34 +163,41 @@ class TwitterTweet(ServiceRecord):
 
     def __unicode__(self):
         return unicode("%s : %s" % (self.user, self.text))
+
     def save_tweet(self, status):
         self.service = Service.objects.filter(type='TWT')[0]
+        #self.created = datetime.fromtimestamp(mktime(time.strptime(status.created_at, '%a %b %d %H:%M:%S  +0000 %Y')))
         self.identifier = status.id
-        self.created = datetime.fromtimestamp(mktime(time.strptime(status.created_at, '%a %b %d %H:%M:%S  +0000 %Y')))
+        self.created = datetime.now()
         self.user = status.user.screen_name
         self.text = status.text
-        hash_regex = re.compile(r'#[0-9a-zA-Z+_]*',re.IGNORECASE)
+
         if status.coordinates:
             self.geom = Point(status.coordinates['coordinates'][0], status.coordinates['coordinates'][1])
+
         if status.place is not None:
             #we get the twitter place
             try:
                 self.place = TwitterPlace.objects.get(identifier=status.place['id'])
             except ObjectDoesNotExist:
                 self.place = TwitterPlace.objects.create(identifier=status.place['id'])
+
         if status.user:
             try:
                 self.twitter_user = TwitterUser.objects.get(screen_name=status.user.screen_name)
             except ObjectDoesNotExist:
                 self.twitter_user = TwitterUser.objects.create(screen_name=status.user.screen_name)
+
         self.save()
+
+        #hash_regex = re.compile(r'#[0-9a-zA-Z+_]*',re.IGNORECASE)
         #for hash in hash_regex.finditer(status.text):
         #    if hash.group() is not None:
         #        try:
         #           self.hashtags = TwitterHashtag.objects.get(hashtag=hash.group)
         #        except ObjectDoesNotExist:
         #           self.hashtags = TwitterHashtag.objects.create(hashtag=hash.group)
-        self.save()
+        #self.save()
 
 
 
