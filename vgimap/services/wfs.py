@@ -36,7 +36,7 @@ class OSMWFSAdapter(WFSAdapter):
 
     def __init__(self):
         self.osm_api = OsmApi.OsmApi(api = "www.overpass-api.de")
-        self.service = Service.objects.filter(type='OSM')[0]
+        #self.service = Service.objects.filter(type='OSM')[0]
 
     def get_feature_descriptions(self, request, **params):
         namespace = request.build_absolute_uri().split('?')[0] + "/schema"
